@@ -1,8 +1,15 @@
+using Mc2.CrudTest.Presentation.Server.Common.Mappers;
+using Mc2.CrudTest.Presentation.Server.Core.Domain.Customers.RepoInterfaces;
+using Mc2.CrudTest.Presentation.Server.Core.Services.CustomerServices;
+using Mc2.CrudTest.Presentation.Server.Persistence.Contexts;
+using Mc2.CrudTest.Presentation.Server.Persistence.Repos.Customer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Net.Http.Headers;
 
 namespace Mc2.CrudTest.Presentation.Server
 {
@@ -20,8 +27,28 @@ namespace Mc2.CrudTest.Presentation.Server
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddControllersWithViews();
-            services.AddRazorPages();
+            services.AddControllers();
+            services.AddSwaggerGen();
+            services.AddEndpointsApiExplorer();
+
+
+            services.AddDbContext<ScopeDBContext>(c => c.UseInMemoryDatabase("CustomerDb"));
+
+
+            services.AddCors(o => o.AddPolicy("customerManagement", builder =>
+            {
+                builder.AllowAnyOrigin()
+                .AllowAnyHeader().AllowAnyMethod();
+
+            }));
+
+            services.AddAutoMapper(typeof(CustomerProfile));
+            services.AddTransient<ICustomerService, CustomerService>();
+            services.AddTransient<ICustomerRepo, CustomerRepo>();
+
+
+
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -29,8 +56,9 @@ namespace Mc2.CrudTest.Presentation.Server
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
-                app.UseWebAssemblyDebugging();
+                app.UseSwagger();
+                app.UseSwaggerUI();
+
             }
             else
             {
@@ -40,16 +68,16 @@ namespace Mc2.CrudTest.Presentation.Server
             }
 
             app.UseHttpsRedirection();
-            app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
 
+            app.UseCors("customerManagement");
             app.UseRouting();
+
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapRazorPages();
                 endpoints.MapControllers();
-                endpoints.MapFallbackToFile("index.html");
+
             });
         }
     }

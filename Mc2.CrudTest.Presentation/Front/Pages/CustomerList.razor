@@ -1,0 +1,303 @@
+﻿@page "/CustomerList"
+
+@using Blazored.LocalStorage
+@using CurrieTechnologies.Razor.SweetAlert2
+@using Mc2.CrudTest.Presentation.Front.Data.ViewServices
+@using Mc2.CrudTest.Presentation.Front.Util
+
+
+@inject IJSRuntime JsRuntime
+@inject SweetAlertService Swal
+@inject ILocalStorageService LocalStorage
+@inject ICustomerManagementService customerService
+
+<h3>CustomerList</h3>
+
+@*modal Pup Add*@
+
+@if (PopStatAdd)
+{
+
+	<div class="modal" tabindex="-1" role="dialog" style="display:block;">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Modal title</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @onclick="ClosePopAdd"></button>
+				</div>
+				<EditForm Model="customerCreate" OnValidSubmit="InsertCustomer">
+					<div class="modal-body">
+						<DataAnnotationsValidator />
+						<ValidationSummary />
+						<table>
+							<tr>
+								<td>
+									FistName
+								</td>
+								<td>
+									<input type="text" placeholder="Input FirstName" @bind="customerCreate.firstname" class="form-control" />
+								</td>
+							</tr>
+							<tr>
+								<td>
+									lastname
+								</td>
+								<td>
+									<input type="text" placeholder="Input lastname" @bind="customerCreate.lastname" class="form-control" />
+								</td>
+							</tr>
+							<tr>
+								<td>
+									Email
+								</td>
+								<td>
+									<input type="text" placeholder="Input Email" @bind="customerCreate.email" class="form-control" />
+								</td>
+							</tr>
+							<tr>
+								<td>
+									bankAccountNumber
+								</td>
+								<td>
+									<input type="text" placeholder="Input bankAccountNumber" @bind="customerCreate.bankAccountNumber" class="form-control" />
+								</td>
+							</tr>
+							<tr>
+								<td>
+									phoneNumber
+								</td>
+								<td>
+									<input type="text" placeholder="Input phoneNumber" @bind="customerCreate.phoneNumber" class="form-control" />
+								</td>
+							</tr>
+							<tr>
+								<td>
+									dateOfBirth
+								</td>
+								<td>
+									<input type="date" @bind="customerCreate.dateOfBirth" class="form-control" />
+								</td>
+							</tr>
+
+						</table>
+					</div>
+					<div class="modal-footer">
+						<button type="submit" class="btn btn-primary">Save changes</button>
+					</div>
+				</EditForm>
+			</div>
+		</div>
+	</div>
+}
+
+@*-------------*@
+
+@*modal Pup Detail*@
+
+@if (PopStatDetail)
+{
+
+	<div class="modal" tabindex="-1" role="dialog" style="display:block;">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Modal title</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @onclick="ClosePopDetail"></button>
+				</div>
+				<div class="modal-body">
+					<table>
+						<tr>
+							<td>
+								FistName
+							</td>
+							<td>
+								<input type="text" placeholder="Input FirstName" @bind="customerDetail.firstname" />
+							</td>
+						</tr>
+						<tr>
+							<td>
+								lastname
+							</td>
+							<td>
+								<input type="text" placeholder="Input lastname" @bind="customerDetail.lastname" />
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Email
+							</td>
+							<td>
+								<input type="text" placeholder="Input Email" @bind="customerDetail.email" />
+							</td>
+						</tr>
+
+						<tr>
+							<td>
+								phoneNumber
+							</td>
+							<td>
+								<input type="text" placeholder="Input phoneNumber" @bind="customerDetail.phoneNumber" />
+							</td>
+						</tr>
+						<tr>
+							<td>
+								dateOfBirth
+							</td>
+							<td>
+								<input type="text" placeholder="Input dateOfBirth" @bind="customerDetail.dateOfBirth" />
+							</td>
+						</tr>
+
+					</table>
+				</div>
+				<div class="modal-footer">
+				</div>
+
+			</div>
+		</div>
+	</div>
+}
+
+@*-------------*@
+<div>
+	<button class="btn btn-primary" @onclick="ShowPopAdd">Add New Customer..</button>
+</div>
+<br />
+<table class="table table-dark">
+	<thead>
+		<tr>
+			<th>#</th>
+			<th>Fname</th>
+			<th>LName</th>
+			<th>Email</th>
+			<th></th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		@if (customerResult.data != null && customerResult.data.Count > 0)
+		{
+			@foreach (var customer in customerResult.data)
+			{
+				<tr>
+					<td>@customer.id</td>
+					<td>
+						<input type="text" @bind-value="customer.firstname" @bind-value:event="onchange" />
+					</td>
+					<td>
+						<input type="text" @bind-value="customer.lastname" @bind-value:event="onchange" />
+					</td>
+					<td>
+						<input type="text" @bind-value="customer.email" @bind-value:event="onchange" />
+					</td>
+					<td>
+						<button class="btn btn-info" @onclick="()=>ShowDetail(customer.id)">Detail</button>
+					</td>
+					<td>
+						<button class="btn btn-danger" @onclick="()=>DeleteCustomer(customer.id)">Delete</button>
+					</td>
+
+				</tr>
+			}
+		}
+
+	</tbody>
+</table>
+
+@code {
+
+
+	private CustomerListResultView customerResult = new CustomerListResultView();
+	private bool PopStatAdd = false;
+	private bool PopStatDetail = false;
+	private CustomerView customerDetail = new CustomerView();
+	private CustomerCreateView customerCreate = new CustomerCreateView();
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadCustomers();
+
+	}
+
+	private async Task LoadCustomers()
+	{
+		customerResult = await customerService.GetCustomersAsync();
+	}
+
+	private async Task ShowDetail(Guid id)
+	{
+		var result = await customerService.GetCustomerById(id);
+		customerDetail = result.data as CustomerView;
+		ShowPopDetail();
+	}
+	private async Task DeleteCustomer(Guid id)
+	{
+		SweetAlertResult confirm = await Swal.FireAsync(new SweetAlertOptions
+				{
+				Title = "Are you sure?",
+				Text = "You will not be able to recover this imaginary file!",
+				Icon = SweetAlertIcon.Warning,
+				ShowCancelButton = true,
+				ConfirmButtonText = "Yes, delete it!",
+				CancelButtonText = "No, keep it"
+			});
+
+		//if(confirmed)
+		if (string.IsNullOrEmpty(confirm.Value))
+			{
+			return;
+		}
+
+		var result = await customerService.DeleteCustomer(id);
+		foreach (var message in result.message)
+		{
+			if (!result.isSuccess)
+				await JsRuntime.ToastrError(message);
+			else
+				await JsRuntime.ToastrSuccess(message);
+		}
+
+		if (result.isSuccess)
+			await LoadCustomers();
+
+
+	}
+
+	private async Task InsertCustomer()
+	{
+		var result = await customerService.AddCustomer(customerCreate);
+		foreach (var message in result.message)
+		{
+			if (!result.isSuccess)
+				await JsRuntime.ToastrError(message);
+			else
+				await JsRuntime.ToastrSuccess(message);
+		}
+
+		if (result.isSuccess)
+			ClosePopAdd();
+
+		await LoadCustomers();
+	}
+
+	private void ShowPopAdd()
+	{
+		PopStatAdd = true;
+	}
+	private void ClosePopAdd()
+	{
+		PopStatAdd = false;
+	}
+
+	private void ShowPopDetail()
+	{
+		PopStatDetail = true;
+	}
+	private void ClosePopDetail()
+	{
+		PopStatDetail = false;
+	}
+
+
+}

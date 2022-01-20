@@ -6,19 +6,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>CrudTest.Presentation</title>
     <base href="/" />
-    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="lib/toastr/build/toastr.min.css" rel="stylesheet" />
+    <link href="lib/open-iconic/font/css/open-iconic-bootstrap.min.css"
+          rel="stylesheet" />
+    <link href="lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="css/app.css" rel="stylesheet" />
     <link href="Mc2.CrudTest.Presentation.Front.styles.css" rel="stylesheet" />
 </head>
 
 <body>
-    <div id="app">Loading...</div>
+    <div id="app">
+        <div style="
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          margin-top: -50px;
+          margin-left: -100px;
+        ">
+            <img src="images/ajax-loader.gif" />
+        </div>
+    </div>
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
+    <script src="lib/jquery/dist/jquery.min.js"></script>
+    <script src="lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="lib/toastr/build/toastr.min.js"></script>
+    <script src="js/common.js"></script>
+    <script src="_content/CurrieTechnologies.Razor.SweetAlert2/sweetAlert2.min.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>
 
